@@ -33,6 +33,7 @@ const FUEL_CRIT = 0.10;               // di bawah ini indikator low fuel merah
 const calcRange = (frac) => Math.max(0, Math.round(frac * TANK_CAPACITY_GALLONS * FUEL_ECONOMY_MPG));
 // =======================================================================
 
+// Catatan: gauge oil/fuel, range, odo & indikator tidak digambar lagi; API-nya tetap menerima data (elemen kosong diabaikan).
 const NOOP_EL = document.createElement('div');   // pengaman kalau ada elemen yang dihapus dari HTML
 const $ = (id) => document.getElementById(id) || NOOP_EL;
 const elHud = $('hud');
@@ -96,10 +97,9 @@ const ICON_FUEL = `<path fill="currentColor" stroke="none" d="M19.77 7.23l.01-.0
 const ICON_OIL = `<path fill="currentColor" stroke="none" d="M2.5 10h4.2l1.3-2h2V6.5H8V5h6v1.5h-2V8h2.5l2 1.8 5-2.8 1 1.2-6.6 7.3H8.4L7 13H2.5zM20.2 14.6c0-.9 1.1-2.3 1.1-2.3s1.1 1.4 1.1 2.3c0 .6-.5 1.1-1.1 1.1s-1.1-.5-1.1-1.1z"/>`;
 
 // ---------- Jendela ODO (LCD, bawah kiri): 6 drum, digit terakhir = desimal (1/10 mil) ----------
-const ODO_N = 6, ODO_W = 26, ODO_ROW = 42, ODO_BOX = { x: 362, y: 685, w: 277, h: 56 };
-const ODO_Y = ODO_BOX.y + 7, ODO_X0 = ODO_BOX.x + 54;
+const ODO_N = 6, ODO_W = 26, ODO_ROW = 42, ODO_BOX = { x: 0, y: 0, w: 277, h: 56 };
+const ODO_Y = 7, ODO_X0 = 54;
 // ---------- Jendela RANGE (bawah kanan, di bawah gauge bensin) ----------
-const RNG_BOX = { x: 1135, y: 685, w: 277, h: 56 };
 
 // ---------- Jarum: lapisan glow lebar, glow sempit, badan jarum, garis inti ----------
 // Jarum dibangun sepanjang sumbu +x lokal lalu diputar di sekitar pusat (g.cx, g.cy).
@@ -186,27 +186,17 @@ function buildDial() {
       <filter id="bloom" x="-25%" y="-25%" width="150%" height="150%"><feGaussianBlur stdDeviation="6"/></filter>
     </defs>`;
 
-    // ===================== HOUSING: panel hitam + tekstur carbon =====================
-    const HOUSE = 'M40 330C40 170 200 112 420 112L1354 112C1574 112 1734 170 1734 330L1734 600C1734 740 1620 810 1480 810L294 810C154 810 40 740 40 600Z';
-    s += `<path d="${HOUSE}" fill="url(#carbon)"/>
-    <path d="${HOUSE}" fill="url(#glassG)" opacity="0.5"/>
-    <path d="M66 332C66 188 214 134 424 134L1350 134C1560 134 1708 188 1708 332" fill="none" stroke="url(#chrome)" stroke-width="2.5" opacity="0.55"/>
-    <path d="M66 596C66 722 164 786 296 786L1478 786C1610 786 1708 722 1708 596" fill="none" stroke="url(#chrome)" stroke-width="2" opacity="0.35"/>
-    <path d="${HOUSE}" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="2"/>`;
-
-    // pill atas (indikator) & bawah (ODO / RANGE): garis tipis menyudut seperti referensi
-    const pill = (x0, x1, y, up) => `<path d="M${x0} ${y}L${x0 + 40} ${y + (up ? -28 : 28)}L${x1 - 40} ${y + (up ? -28 : 28)}L${x1} ${y}" fill="none" stroke="url(#chrome)" stroke-width="2" opacity="0.4"/>`;
-    s += pill(300, 640, 285, true) + pill(1134, 1474, 285, true);
-
     // ===================== TACHO: bezel + muka =====================
     s += `
     <circle cx="${tx}" cy="${ty}" r="${TAC.bezel + 14}" fill="url(#haloG)"/>
     <circle cx="${tx}" cy="${ty}" r="${TAC.bezel}" fill="#050506"/>
+    <g class="chrome-g">
     <circle cx="${tx}" cy="${ty}" r="${TAC.bezel - 4}" fill="none" stroke="url(#chrome)" stroke-width="3" opacity="0.5"/>
     <circle cx="${tx}" cy="${ty}" r="${TAC.ring}" fill="none" stroke="url(#chrome)" stroke-width="9"/>
     <circle cx="${tx}" cy="${ty}" r="${TAC.ring - 7}" fill="#0a0a0c"/>
     <circle cx="${tx}" cy="${ty}" r="${TAC.face}" fill="url(#faceG)"/>
-    <circle cx="${tx}" cy="${ty}" r="${TAC.face}" fill="url(#glassG)"/>`;
+    <circle cx="${tx}" cy="${ty}" r="${TAC.face}" fill="url(#glassG)"/>
+    </g>`;
 
     // ----- skala RPM (x1000) -----
     s += `<g class="lit g-rpm">`;
@@ -225,76 +215,37 @@ function buildDial() {
 
     // ===================== SPEEDO: cincin dalam + angka digital =====================
     s += `
-    <circle cx="${tx}" cy="${ty}" r="${TAC.inner + 6}" fill="#030304"/>
-    <circle cx="${tx}" cy="${ty}" r="${TAC.inner + 2}" fill="none" stroke="url(#chrome)" stroke-width="5"/>
-    <circle cx="${tx}" cy="${ty}" r="${TAC.inner - 4}" fill="#060607"/>`;
+    <circle cx="${tx}" cy="${ty}" r="${TAC.inner + 6}" fill="#050506"/>
+    <circle class="chrome-g" cx="${tx}" cy="${ty}" r="${TAC.inner + 2}" fill="none" stroke="url(#chrome)" stroke-width="5"/>
+    <circle cx="${tx}" cy="${ty}" r="${TAC.inner - 4}" fill="#050506"/>`;
     s += `<g class="lit g-spd">`;
     s += `<circle class="edge" cx="${tx}" cy="${ty}" r="${TAC.inner - 6}" fill="none" stroke="#c8181c" stroke-width="2"/>`;
-    for (let v = 0; v <= MAX_MPH; v += 10) {
-        const major = v % 20 === 0;
-        s += tick(tx, ty, sA(v), major ? 160 : 168, 180, major ? 3.2 : 1.8);
-    }
     // logo R8 (blok merah + wordmark)
     s += `<polygon class="r8-slab" points="${tx - 82},${ty - 122} ${tx - 40},${ty - 122} ${tx - 54},${ty - 76} ${tx - 96},${ty - 76}"/>`;
     s += txt('r8', tx + 12, ty - 98, 66, 'R8');
     s += txt('lbl', tx, ty - 148, 17, 'x1000 RPM');
     s += txt('lbl up', tx, ty - 40, 24, 'MPH');
-    s += txt('big', tx, ty + 34, 112, '0', 'spd-val');
+    s += txt('big', tx, ty + 26, 112, '0', 'spd-val');
+    // indikator (dalam cincin, di bawah gear)
+    s += icon('seatbelts', 'eng warn', tx - 62, ty + 132, 1.5, ICON_SEATBELT);
+    s += icon('door-lock', '', tx - 18, ty + 132, 1.5, ICON_LOCK);
+    s += icon('headlight', 'eng', tx + 26, ty + 132, 1.5, ICON_HEADLIGHT);
     s += `</g>`;
-    s += txt('gear', tx, ty + 128, 54, 'N', 'gear');
+    s += txt('gear', tx, ty + 106, 44, 'N', 'gear');
 
-    // ===================== OIL PRESS (kiri) =====================
-    const oc = OIL;
+    // ===================== OIL / FUEL / RANGE (sektor bawah dial) =====================
     s += `<g class="lit g-aux">`;
-    s += `<path class="bar-trk" d="${arcPath(oc.cx, oc.cy, oc.r, oA(0), oA(OIL_MAX))}"/>`;
-    s += `<path class="bar-red" d="${arcPath(oc.cx, oc.cy, oc.r, oA(0), oA(OIL_LOW))}"/>`;
-    s += `<path id="oil-bar" class="bar-fill" pathLength="1000" stroke-dasharray="0 1000" d="${arcPath(oc.cx, oc.cy, oc.r, oA(0), oA(OIL_MAX))}"/>`;
-    for (let p = 0; p <= OIL_MAX; p += 5) {
-        const major = p % 25 === 0, mid = p % 10 === 0;
-        s += tick(oc.cx, oc.cy, oA(p), oc.r - 12 - (major ? 22 : mid ? 16 : 10), oc.r - 12, major ? 4.4 : mid ? 3 : 2, p <= OIL_LOW ? 'red' : '');
-    }
-    for (const p of [0, 50, 100]) {
-        const [x, y] = pol(oc.cx, oc.cy, 232, oA(p));
-        s += txt(p <= OIL_LOW ? 'num red' : 'num', x, y, 30, p);
-    }
-    s += txt('lbl up', 218, 456, 22, 'OIL PRESS');
-    s += txt('big sm', 218, 520, 58, '100', 'oil-val');
-    s += txt('lbl up', 218, 572, 22, 'PSI');
-    s += icon('oil-ico', 'gauge-ico', 92, 648, 1.7, ICON_OIL);
+    s += icon('oil-ico', 'gauge-ico', tx - 158, ty + 196, 1.5, ICON_OIL);
+    s += txt('big', tx - 72, ty + 214, 40, '100', 'oil-val');
+    s += txt('lbl up', tx - 72, ty + 242, 17, 'OIL PSI');
+    s += icon('fuel-ico', 'gauge-ico', tx + 120, ty + 196, 1.5, ICON_FUEL);
+    s += txt('big', tx + 72, ty + 214, 40, '100%', 'fuel-val');
+    s += `<text class="lbl up" x="${tx + 72}" y="${ty + 242}" font-size="17">RANGE <tspan id="rng-val" class="rng">${calcRange(1)}</tspan> MI</text>`;
     s += `</g>`;
 
-    // ===================== FUEL (kanan) =====================
-    const fc = FUEL;
-    s += `<g class="lit g-aux">`;
-    s += `<path class="bar-trk" d="${arcPath(fc.cx, fc.cy, fc.r, fA(0), fA(1))}"/>`;
-    s += `<path class="bar-red" d="${arcPath(fc.cx, fc.cy, fc.r, fA(0), fA(FUEL_LOW))}"/>`;
-    s += `<path id="fuel-bar" class="bar-fill" pathLength="1000" stroke-dasharray="1000 1000" d="${arcPath(fc.cx, fc.cy, fc.r, fA(0), fA(1))}"/>`;
-    for (let i = 0; i <= 20; i++) {
-        const f = i / 20, major = i % 10 === 0, mid = i % 5 === 0;
-        s += tick(fc.cx, fc.cy, fA(f), fc.r - 12 - (major ? 22 : mid ? 16 : 10), fc.r - 12, major ? 4.4 : mid ? 3 : 2, f <= FUEL_LOW ? 'red' : '');
-    }
-    for (const [f, t] of [[0, 'E'], [0.5, '1/2'], [1, 'F']]) {
-        const [x, y] = pol(fc.cx, fc.cy, 232, fA(f));
-        s += txt(f === 0 ? 'num red' : 'num', x, y, 30, t);
-    }
-    s += icon('fuel-ico', 'gauge-ico', 1640, 648, 1.7, ICON_FUEL);
-    s += `</g>`;
-
-    // ===================== MOBIL & LOGO CINCIN (hiasan) =====================
-    s += carFront(1410, 520);
-    s += `<polygon class="redwedge" points="468,610 540,445 566,445 566,610"/>`;
-    s += `<g class="lit g-aux rings" fill="none" stroke="url(#chrome)" stroke-width="5.5">`;
-    for (let i = 0; i < 4; i++) s += `<circle cx="${318 + i * 42.3}" cy="498" r="44"/>`;
-    s += `</g>`;
-
-    // ===================== INDIKATOR (pill atas) =====================
-    s += icon('seatbelts', 'eng warn', 458, 238, 1.7, ICON_SEATBELT);
-    s += icon('door-lock', '', 538, 238, 1.7, ICON_LOCK);
-    s += icon('headlight', 'eng', 1236, 238, 1.7, ICON_HEADLIGHT);
-
-    // ===================== ODO (kiri bawah): drum angka berputar =====================
-    s += `<rect x="${ODO_BOX.x}" y="${ODO_BOX.y}" width="${ODO_BOX.w}" height="${ODO_BOX.h}" rx="6" fill="#07090d" stroke="#2b2f38" stroke-width="2"/>
-    <rect x="${ODO_BOX.x}" y="${ODO_BOX.y}" width="${ODO_BOX.w}" height="${ODO_BOX.h}" rx="6" fill="url(#glassG)"/>
+    // ===================== ODO (miles): drum angka berputar =====================
+    s += `<g transform="translate(${tx - 97} ${ty + 246}) scale(0.7)">
+    <rect x="0" y="0" width="${ODO_BOX.w}" height="${ODO_BOX.h}" rx="6" fill="#07090d" stroke="#2b2f38" stroke-width="2"/>
     <g class="odo lit g-spd">`;
     for (let i = 0; i < ODO_N; i++) {
         const x = ODO_X0 + i * ODO_W, last = i === ODO_N - 1;
@@ -307,24 +258,10 @@ function buildDial() {
           ${i > 0 && !last ? `<line x1="0" y1="0" x2="0" y2="${ODO_ROW}" stroke="rgba(255,255,255,0.14)" stroke-width="1.5"/>` : ''}
         </svg>`;
     }
-    const oy = ODO_BOX.y + ODO_BOX.h / 2 + 1;
-    s += txt('lbl odo-tag', ODO_BOX.x + 14, oy, 17, 'ODO') + txt('lbl odo-tag end', ODO_BOX.x + ODO_BOX.w - 10, oy, 15, 'MILES') + `</g>`;
+    s += txt('lbl odo-tag', 14, ODO_BOX.h / 2 + 1, 17, 'ODO') + txt('lbl odo-tag end', ODO_BOX.w - 10, ODO_BOX.h / 2 + 1, 15, 'MILES') + `</g></g>`;
 
-    // ===================== RANGE (kanan bawah): sisa jarak = galon x MPG =====================
-    s += `<rect x="${RNG_BOX.x}" y="${RNG_BOX.y}" width="${RNG_BOX.w}" height="${RNG_BOX.h}" rx="6" fill="#07090d" stroke="#2b2f38" stroke-width="2"/>
-    <rect x="${RNG_BOX.x}" y="${RNG_BOX.y}" width="${RNG_BOX.w}" height="${RNG_BOX.h}" rx="6" fill="url(#glassG)"/>
-    <g class="lit g-aux">`;
-    const ry = RNG_BOX.y + RNG_BOX.h / 2 + 1;
-    s += txt('lbl odo-tag', RNG_BOX.x + 14, ry, 17, 'RANGE');
-    s += txt('rng', RNG_BOX.x + 158, ry, 40, calcRange(1), 'rng-val');
-    s += txt('lbl odo-tag end', RNG_BOX.x + RNG_BOX.w - 10, ry, 15, 'MILES');
-    s += txt('lbl up dim', RNG_BOX.x + RNG_BOX.w / 2, RNG_BOX.y + RNG_BOX.h + 26, 16, `${FUEL_ECONOMY_MPG} MPG`);
-    s += `</g>`;
-
-    // ----- jarum (paling atas): tacho besar + speedo tipis di cincin dalam -----
-    s += needle('nd-fuel', FUEL, FUEL.r - 56, FUEL.r + 4, 5) + needle('nd-oil', OIL, OIL.r - 56, OIL.r + 4, 5);
-    s += needle('nd-spd', SPD, 140, 188, 3.6);
-    s += needle('nd-rpm', TAC, TAC.inner + 8, 298, 7);
+    // ----- jarum RPM (paling atas); speed = angka digital saja -----
+    s += `<g class="chrome-g">` + needle('nd-rpm', TAC, TAC.inner + 8, 298, 7) + `</g>`;   // satu-satunya jarum: RPM
 
     svg.innerHTML = s;
 }
@@ -406,7 +343,8 @@ function frame(now) {
     setBar($('fuel-bar'), 'fuel', state.fuelShown);
     setBar($('oil-bar'), 'oil', state.oilShown);
     setText($('spd-val'), Math.round(clamp01(state.spdShown) * MAX_MPH));          // angka digital MPH ikut jarum
-    setText($('oil-val'), Math.round(clamp01(state.oilShown) * OIL_MAX));          // PSI
+    setText($('oil-val'), Math.round(clamp01(state.oilShown) * OIL_MAX));
+    setText($('fuel-val'), Math.round(clamp01(state.fuelShown) * 100) + '%');          // PSI
 
     if (booting || limiter || state.spdShown !== tSpd || state.rpmShown !== tRpm || state.fuelShown !== tFuel || state.oilShown !== tOil) {
         rafId = requestAnimationFrame(frame);
@@ -432,7 +370,7 @@ window.setFuel = function (fuel) {
     state.fuel = clamp01(val > 1 ? val / 100 : val);
     const lvl = state.fuel < FUEL_CRIT ? 'crit' : state.fuel < FUEL_LOW ? 'low' : '';
     setCls($('fuel-ico'), ('ind gauge-ico ' + lvl).trim());
-    setCls($('fuel-bar'), ('bar-fill ' + lvl).trim());
+    setCls($('fuel-val'), ('big ' + lvl).trim());
     setCls($('rng-val'), ('rng ' + lvl).trim());
     setText($('rng-val'), calcRange(state.fuel));            // RANGE (miles) = galon tersisa x MPG
     kick();
@@ -444,7 +382,7 @@ window.setHealth = function (health) {
     if (p === state.health) return;
     state.health = p;
     setCls($('oil-ico'), p <= 0.3 ? 'ind gauge-ico crit' : p <= 0.5 ? 'ind gauge-ico low' : 'ind gauge-ico');
-    setCls($('oil-bar'), p * OIL_FULL <= OIL_LOW ? 'bar-fill crit' : 'bar-fill');
+    setCls($('oil-val'), p * OIL_FULL <= OIL_LOW ? 'big crit' : 'big');
     kick();
 };
 // ---------- 5. Gear ----------
