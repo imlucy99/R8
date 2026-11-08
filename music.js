@@ -9,8 +9,8 @@
    ========================================================= */
 (function () {
     // ====== ISI INI ======
-    const MUSIC_DB_URL = 'https://nothinc99-default-rtdb.asia-southeast1.firebasedatabase.app/';          // contoh: 'https://nama-project-default-rtdb.asia-southeast1.firebasedatabase.app'
-    const MUSIC_ROOM = 'rh7-x93kq'; // nama room (buat susah ditebak, siapa pun yang tahu bisa mengontrol)
+    const MUSIC_DB_URL = 'https://rspeedo-b8049-default-rtdb.asia-southeast1.firebasedatabase.app/';          // contoh: 'https://nama-project-default-rtdb.asia-southeast1.firebasedatabase.app'
+    const MUSIC_ROOM = '9r-x93kq'; // nama room (buat susah ditebak, siapa pun yang tahu bisa mengontrol)
     // =====================
 
     const q = new URLSearchParams(location.search);
