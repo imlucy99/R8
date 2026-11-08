@@ -222,7 +222,7 @@ function buildDial() {
     s += `<circle class="edge" cx="${tx}" cy="${ty}" r="${TAC.inner - 6}" fill="none" stroke="#c8181c" stroke-width="2"/>`;
     // logo R8 (blok merah + wordmark)
     s += `<polygon class="r8-slab" points="${tx - 76},${ty - 166} ${tx - 40},${ty - 166} ${tx - 51},${ty - 128} ${tx - 87},${ty - 128}"/>`;
-    s += txt('r8', tx + 10, ty - 146, 48, 'R8');
+    s += txt('9r', tx + 10, ty - 146, 48, '9R');
     s += txt('lbl up', tx, ty - 104, 15, 'MPH');
     s += txt('big', tx, ty - 52, 80, '0', 'spd-val');
 
