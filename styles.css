@@ -272,7 +272,6 @@ body.no-btn .vbox-btn { display: none; }
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.11) 0%, rgba(255, 255, 255, 0) 45%);
 }
 .music.show { opacity: var(--lum2, 1); transform: translate(-50%, 0); }
-.cluster:not(.engine-on) .music.show { opacity: 0.22; }      /* mesin mati = layar redup */
 
 /* Slab miring (bentuk blok logo di dial) berisi equalizer */
 .music .mu-slab { flex: none; filter: drop-shadow(0 0 7px var(--mu-acc)); opacity: 0.95; }
