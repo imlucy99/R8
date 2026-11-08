@@ -221,44 +221,40 @@ function buildDial() {
     s += `<g class="lit g-spd">`;
     s += `<circle class="edge" cx="${tx}" cy="${ty}" r="${TAC.inner - 6}" fill="none" stroke="#c8181c" stroke-width="2"/>`;
     // logo R8 (blok merah + wordmark)
-    s += `<polygon class="r8-slab" points="${tx - 82},${ty - 122} ${tx - 40},${ty - 122} ${tx - 54},${ty - 76} ${tx - 96},${ty - 76}"/>`;
-    s += txt('r8', tx + 12, ty - 98, 66, 'R8');
-    s += txt('lbl', tx, ty - 148, 17, 'x1000 RPM');
-    s += txt('lbl up', tx, ty - 40, 24, 'MPH');
-    s += txt('big', tx, ty + 26, 112, '0', 'spd-val');
+    s += `<polygon class="r8-slab" points="${tx - 80},${ty - 128} ${tx - 40},${ty - 128} ${tx - 53},${ty - 84} ${tx - 93},${ty - 84}"/>`;
+    s += txt('r8', tx + 12, ty - 106, 60, 'R8');
+    s += txt('lbl', tx, ty - 152, 16, 'x1000 RPM');
+    s += txt('lbl up', tx, ty - 56, 20, 'MPH');
+    s += txt('big', tx, ty + 8, 100, '0', 'spd-val');
     // indikator (dalam cincin, di bawah gear)
-    s += icon('seatbelts', 'eng warn', tx - 62, ty + 132, 1.5, ICON_SEATBELT);
-    s += icon('door-lock', '', tx - 18, ty + 132, 1.5, ICON_LOCK);
-    s += icon('headlight', 'eng', tx + 26, ty + 132, 1.5, ICON_HEADLIGHT);
-    s += `</g>`;
-    s += txt('gear', tx, ty + 106, 44, 'N', 'gear');
-
-    // ===================== OIL / FUEL / RANGE (sektor bawah dial) =====================
-    s += `<g class="lit g-aux">`;
-    s += icon('oil-ico', 'gauge-ico', tx - 158, ty + 196, 1.5, ICON_OIL);
-    s += txt('big', tx - 72, ty + 214, 40, '100', 'oil-val');
-    s += txt('lbl up', tx - 72, ty + 242, 17, 'OIL PSI');
-    s += icon('fuel-ico', 'gauge-ico', tx + 120, ty + 196, 1.5, ICON_FUEL);
-    s += txt('big', tx + 72, ty + 214, 40, '100%', 'fuel-val');
-    s += `<text class="lbl up" x="${tx + 72}" y="${ty + 242}" font-size="17">RANGE <tspan id="rng-val" class="rng">${calcRange(1)}</tspan> MI</text>`;
-    s += `</g>`;
-
-    // ===================== ODO (miles): drum angka berputar =====================
-    s += `<g transform="translate(${tx - 97} ${ty + 246}) scale(0.7)">
-    <rect x="0" y="0" width="${ODO_BOX.w}" height="${ODO_BOX.h}" rx="6" fill="#07090d" stroke="#2b2f38" stroke-width="2"/>
-    <g class="odo lit g-spd">`;
+    s += icon('seatbelts', 'eng warn', tx - 55, ty + 108, 1.3, ICON_SEATBELT);
+    s += icon('door-lock', '', tx - 16, ty + 108, 1.3, ICON_LOCK);
+    s += icon('headlight', 'eng', tx + 23, ty + 108, 1.3, ICON_HEADLIGHT);
+    // ODO (miles) tanpa kotak: drum angka kecil di dasar lingkaran dalam
+    s += `<g class="odo lit g-spd" transform="translate(${tx - 54} ${ty + 149}) scale(0.56)">`;
     for (let i = 0; i < ODO_N; i++) {
-        const x = ODO_X0 + i * ODO_W, last = i === ODO_N - 1;
+        const x = i * ODO_W, last = i === ODO_N - 1;
         let rows = '';
         for (let r = 0; r <= 10; r++) rows += `<text class="odo-digit${last ? ' odo-last' : ''}" x="${ODO_W / 2}" y="${ODO_ROW / 2 + r * ODO_ROW + 2}">${r % 10}</text>`;
-        s += `<svg x="${x}" y="${ODO_Y}" width="${ODO_W}" height="${ODO_ROW}" viewBox="0 0 ${ODO_W} ${ODO_ROW}" overflow="hidden">
+        s += `<svg x="${x}" y="0" width="${ODO_W}" height="${ODO_ROW}" viewBox="0 0 ${ODO_W} ${ODO_ROW}" overflow="hidden">
           <rect width="${ODO_W}" height="${ODO_ROW}" fill="${last ? '#f2f2f2' : '#050506'}"/>
           <g class="odo-strip snap" id="odo${i}">${rows}</g>
           <rect width="${ODO_W}" height="${ODO_ROW}" fill="url(#drumShade)"/>
-          ${i > 0 && !last ? `<line x1="0" y1="0" x2="0" y2="${ODO_ROW}" stroke="rgba(255,255,255,0.14)" stroke-width="1.5"/>` : ''}
         </svg>`;
     }
-    s += txt('lbl odo-tag', 14, ODO_BOX.h / 2 + 1, 17, 'ODO') + txt('lbl odo-tag end', ODO_BOX.w - 10, ODO_BOX.h / 2 + 1, 15, 'MILES') + `</g></g>`;
+    s += txt('lbl odo-tag', ODO_N * ODO_W + 8, ODO_ROW / 2 + 1, 24, 'MI') + `</g>`;
+    s += `</g>`;
+    s += txt('gear', tx, ty + 80, 38, 'N', 'gear');
+
+    // ===================== OIL / FUEL / RANGE (sektor bawah dial) =====================
+    s += `<g class="lit g-aux">`;
+    s += icon('oil-ico', 'gauge-ico', tx - 166, ty + 210, 1.5, ICON_OIL);
+    s += txt('big', tx - 68, ty + 228, 38, '100', 'oil-val');
+    s += txt('lbl up', tx - 68, ty + 256, 15, 'OIL PSI');
+    s += icon('fuel-ico', 'gauge-ico', tx + 130, ty + 210, 1.5, ICON_FUEL);
+    s += txt('big', tx + 66, ty + 228, 38, '100%', 'fuel-val');
+    s += `<text class="lbl up" x="${tx + 66}" y="${ty + 256}" font-size="15">RANGE <tspan id="rng-val" class="rng">${calcRange(1)}</tspan> MI</text>`;
+    s += `</g>`;
 
     // ----- jarum RPM (paling atas); speed = angka digital saja -----
     s += `<g class="chrome-g">` + needle('nd-rpm', TAC, TAC.inner + 8, 298, 7) + `</g>`;   // satu-satunya jarum: RPM
