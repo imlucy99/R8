@@ -1,7 +1,7 @@
 :root {
     --offset-bottom: 40px;      /* jarak HUD dari bawah layar */
     --offset-right: 18px;       /* jarak HUD dari kanan layar */
-    --scale: 0.55;              /* ubah untuk memperbesar / memperkecil HUD */
+    --scale: 0.7;              /* ubah untuk memperbesar / memperkecil HUD */
 
     --warn: #ff2a2f;            /* merah peringatan */
     --green: #19b84a;
