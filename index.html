@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AUDI R8 GEN 2 VIRTUAL COCKPIT</title>
+  <meta name="description" content="Custom speedometer HUD Optitron - Audi R8 Gen 2 Virtual Cockpit (MPH / Miles)" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- VBOX Performance Box Touch: klik tombol (atau tekan V) untuk memunculkan alatnya -->
+  <button class="vbox-btn" id="vbox-btn" type="button" title="VBOX Performance Box Touch (V)"><i></i><b>VBOX</b><span>PBT</span></button>
+  <div class="vbox" id="vbox"></div>
+
+  <!-- Panel tes (hanya di preview ?demo): tombol mesin & lampu. Shortcut: E = mesin, L = lampu, D = dimmer -->
+  <div class="dev" id="dev">
+    <button type="button" id="dev-engine">Mesin: OFF</button>
+    <button type="button" id="dev-lights">Lampu: OFF</button>
+    <button type="button" id="dev-dim">Dimmer: 100%</button>
+  </div>
+
+  <div class="hud-wrap">
+    <!-- Now playing (musik sinkron): diisi oleh music.js, muncul hanya saat ada lagu di room -->
+    <div class="music" id="music">
+      <div class="mu-eq"><i></i><i></i><i></i><i></i></div>
+      <div class="mu-txt"><span class="mu-title" id="music-title">-</span></div>
+      <span class="mu-time" id="music-time">0:00</span>
+    </div>
+    <div class="cluster" id="hud">
+      <!-- Semua gauge, tick, angka, jarum & ikon digambar oleh script.js -->
+      <svg id="dial" class="dial" viewBox="0 70 1774 770" xmlns="http://www.w3.org/2000/svg"></svg>
+
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script src="music.js"></script>
+  <script src="theme.js"></script>
+</body>
+</html>

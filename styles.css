@@ -1,0 +1,285 @@
+:root {
+    --offset-bottom: 40px;      /* jarak HUD dari bawah layar */
+    --offset-right: 18px;       /* jarak HUD dari kanan layar */
+    --scale: 0.55;              /* ubah untuk memperbesar / memperkecil HUD */
+
+    --warn: #ff2a2f;            /* merah peringatan */
+    --green: #19b84a;
+    --blue: #2f7bff;
+    --amber: #e8a200;
+    --off: rgba(255, 255, 255, 0.13);
+
+    --face-a: #1b1c21;          /* muka dial hitam Optitron */
+    --face-b: #030304;
+    --ink: #f4f6fa;             /* angka & tick putih */
+    --zone: #d4161a;            /* zona merah */
+
+    /* jarum: gelap saat mati, merah redup saat mesin hidup, merah terang + glow saat lampu nyala */
+    --ndl-off: #4d100d;         /* mesin mati */
+    --ndl-mid: #8e1b16;         /* mesin hidup, lampu mati */
+    --ndl-on: #f2271c;          /* lampu depan nyala */
+    --glow: #ff2a1f;
+
+    --ui: 'Rajdhani', 'Bahnschrift', 'Segoe UI', sans-serif;
+    --digital: 'Orbitron', 'Bahnschrift', 'Arial Narrow', sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+    width: 100vw;
+    height: 100vh;
+    background: transparent;
+    overflow: hidden;
+    font-family: var(--ui);
+    color: #fff;
+    user-select: none;
+}
+
+/* Posisi HUD: kanan bawah layar */
+.hud-wrap {
+    position: fixed;
+    right: var(--offset-right);
+    bottom: var(--offset-bottom);
+    width: 1000px;
+    height: 434px;
+    transform: scale(var(--scale));
+    transform-origin: bottom right;
+}
+.cluster {
+    position: relative; width: 100%; height: 100%;
+    --lum: 1;                                   /* kecerahan dial (diatur script: dimmer + lampu depan) */
+    --lum2: calc(0.4 + 0.6 * var(--lum));       /* versi lebih lembut untuk ikon */
+}
+.dial { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+
+/* Preview di browser */
+body.preview {
+    background:
+        radial-gradient(ellipse at 50% 120%, #2a2f38 0%, transparent 60%),
+        linear-gradient(180deg, #3a404a 0%, #14171c 60%, #07080a 100%);
+}
+body.preview .hud-wrap {
+    right: 50%;
+    bottom: 50%;
+    transform: translate(50%, 50%) scale(min(1, calc(100vw / 1040px)));
+    transform-origin: center;
+}
+
+/* ===================== OPTITRON: cahaya dial =====================
+   .lit = semua yang menyala sendiri (tick, angka, logo, zona merah, tepi merah, LCD).
+   Mati      : hampir tak terlihat, memudar pelan (shutdown, tiap gauge bergantian)
+   Menyala   : opacity = --lum (dimmer), diawali animasi wake-up bertahap tacho -> speedo -> gauge kanan */
+.dial .lit { opacity: 0.1; transition: opacity 1.3s cubic-bezier(0.16, 0.7, 0.3, 1); }
+.dial .odo.lit { opacity: 0; }           /* ODO: kaca LCD tetap terlihat, isi mati total saat mesin mati */
+.dial .lit.g-aux { transition-delay: 0s; }
+.dial .lit.g-rpm { transition-delay: 0.15s; }
+.dial .lit.g-spd { transition-delay: 0.3s; }
+.cluster.engine-on .dial .lit {
+    opacity: var(--lum);
+    transition: opacity 0.5s ease;
+    transition-delay: 0s;
+    animation: opt-wake 1.6s ease-out backwards;
+}
+.cluster.engine-on .dial .lit.g-rpm { animation-delay: 0s; }
+.cluster.engine-on .dial .lit.g-spd { animation-delay: 0.18s; }
+.cluster.engine-on .dial .lit.g-aux { animation-delay: 0.36s; }
+@keyframes opt-wake {
+    0%   { opacity: 0.06; }
+    42%  { opacity: 1; }
+    62%  { opacity: 0.8; }
+    100% { opacity: var(--lum); }
+}
+
+/* ===================== TEKS DIAL ===================== */
+.dial .tk { stroke: var(--ink); stroke-linecap: butt; }
+.dial .tk.red { stroke: #ff6a6a; }
+.dial .num {
+    font-family: var(--ui);
+    font-weight: 600;
+    fill: var(--ink);
+    stroke: rgba(255, 255, 255, 0.3);      /* pendar tipis angka menyala */
+    stroke-width: 1.2px;
+    paint-order: stroke;
+    text-anchor: middle;
+    dominant-baseline: central;
+}
+.dial .lbl { font-family: var(--ui); font-weight: 700; font-style: italic; fill: var(--ink); text-anchor: middle; dominant-baseline: central; }
+.dial .lbl.up { font-style: normal; letter-spacing: 0.5px; }
+.dial .zone { fill: var(--zone); }
+.dial .zone-glow { fill: var(--zone); opacity: 0.75; }
+.dial .arc-red { fill: none; stroke: var(--zone); stroke-width: 8; }
+
+/* Logo R8, angka digital, bar side gauge, range */
+.dial .r8 { font-family: var(--ui); font-weight: 700; font-style: italic; letter-spacing: 2px; fill: url(#gtG); text-anchor: middle; dominant-baseline: central; }
+.dial .r8-slab { fill: var(--zone); }
+.dial .big { font-family: var(--ui); font-weight: 700; fill: var(--ink); stroke: rgba(255, 255, 255, 0.25); stroke-width: 1.5px; paint-order: stroke; text-anchor: middle; dominant-baseline: central; }
+.dial .num.red { fill: #ff3a3a; stroke: rgba(255, 60, 60, 0.35); }
+.dial .lbl.dim { opacity: 0.6; }
+.dial .wash { fill: url(#redWash); }
+.dial .bar-trk { fill: none; stroke: rgba(255, 255, 255, 0.13); stroke-width: 9; }
+.dial .bar-red { fill: none; stroke: var(--zone); stroke-width: 9; opacity: 0.55; }
+.dial .bar-fill { fill: none; stroke: #f4f6fa; stroke-width: 9; stroke-linecap: butt; }
+.dial .bar-fill.low { stroke: var(--amber); }
+.dial .bar-fill.crit { stroke: var(--warn); }
+.dial .rng { font-family: var(--ui); font-weight: 600; fill: #f2f6ff; text-anchor: middle; dominant-baseline: central; }
+.dial .rng.low { fill: var(--amber); }
+.dial .rng.crit { fill: var(--warn); }
+.dial .redwedge { fill: url(#redWash); opacity: 0.55; }
+@keyframes ico-blink { 50% { opacity: 0.25; } }
+.cluster.engine-on .dial .ind.gauge-ico.crit { animation: ico-blink 0.8s steps(2) infinite; }
+
+/* ===================== JARUM: menyala saat LAMPU DEPAN nyala ===================== */
+.dial .ndl { fill: var(--ndl-off); transition: fill 0.9s ease; }
+.cluster.engine-on .dial .ndl { fill: var(--ndl-mid); transition: fill 0.35s ease; }
+.cluster.lights-on .dial .ndl { fill: var(--ndl-on); transition: fill 0.35s ease; }
+.dial .ndl-glow { fill: none; stroke: var(--glow); stroke-linejoin: round; opacity: 0; transition: opacity 0.6s ease; }
+.dial .ndl-glow.g2 { stroke-width: 15; }
+.dial .ndl-glow.g1 { stroke-width: 6; }
+.cluster.lights-on .dial .ndl-glow.g2 { opacity: calc(0.16 * var(--lum)); }
+.cluster.lights-on .dial .ndl-glow.g1 { opacity: calc(0.34 * var(--lum)); }
+.dial .ndl-core { stroke: #ff9d85; stroke-width: 1.3; stroke-linecap: round; opacity: 0; transition: opacity 0.6s ease; }
+.cluster.lights-on .dial .ndl-core { opacity: calc(0.7 * var(--lum)); }
+.dial .hub-ring { fill: none; stroke: var(--glow); stroke-width: 3; opacity: 0; transition: opacity 0.5s ease; }
+.cluster.lights-on .dial .hub-ring { opacity: calc(0.45 * var(--lum)); }
+
+/* ===================== IKON INDIKATOR ===================== */
+.dial .ind { color: var(--off); transition: color 0.15s ease, filter 0.15s ease, opacity 0.5s ease; }
+.cluster:not(.engine-on) .dial .ind.eng { opacity: 0.3; }
+.cluster.engine-on .dial .ind.eng { opacity: var(--lum2); }
+.dial .ind.active    { color: var(--green); filter: drop-shadow(0 0 4px rgba(25, 184, 74, 0.55)); }
+.dial .ind.high-beam { color: var(--blue);  filter: drop-shadow(0 0 5px rgba(47, 123, 255, 0.7)); }
+.dial .ind.warn      { color: var(--warn);  filter: drop-shadow(0 0 4px rgba(255, 42, 47, 0.55)); }
+.dial .ind.locked    { color: var(--amber); filter: drop-shadow(0 0 4px rgba(232, 162, 0, 0.55)); }
+.dial .ind.low       { color: var(--amber); }
+.dial .ind.crit      { color: var(--warn); }
+.dial .ind.gauge-ico { color: var(--ink); }
+.dial .ind.gauge-ico.low  { color: var(--amber); }
+.dial .ind.gauge-ico.crit { color: var(--warn); }
+
+#headlight .beam-high { display: none; }
+#headlight.high-beam .beam-high { display: inline; }
+#headlight.high-beam .beam-low { display: none; }
+#door-lock .shackle-closed { display: none; }
+#door-lock.locked .shackle-closed { display: inline; }
+#door-lock.locked .shackle-open { display: none; }
+
+.dial .gear { font-family: var(--ui); font-weight: 700; font-size: 54px; fill: var(--ink); text-anchor: middle; dominant-baseline: central; transition: opacity 0.5s ease; }
+.dial .gear.rev { fill: var(--warn); }
+.cluster:not(.engine-on) .dial .gear { opacity: 0.3; }
+.cluster.engine-on .dial .gear { opacity: var(--lum2); }
+
+/* ODO (LCD): ikut menyala / padam bersama dial; digit putih, desimal di drum putih */
+.dial .odo-digit { font-family: var(--ui); font-weight: 600; font-style: normal; font-size: 34px; fill: #f2f6ff; text-anchor: middle; dominant-baseline: central; }
+.dial .odo-digit.odo-last { fill: #0b0b0d; }   /* digit desimal: angka gelap di drum putih */
+.dial .odo-tag { font-style: normal; font-weight: 600; font-size: 17px; text-anchor: start; }
+.dial .odo-tag.end { text-anchor: end; }
+.dial .odo-strip { transition: transform 0.45s cubic-bezier(0.45, 0, 0.2, 1); }
+.dial .odo-strip.snap { transition: none; }
+
+/* ===================== PANEL TES (preview) ===================== */
+.dev { display: none; position: fixed; top: 8px; left: 8px; z-index: 10; gap: 6px; }
+body.preview .dev { display: flex; }
+.dev button {
+    padding: 6px 12px; border-radius: 6px; cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: rgba(10, 11, 13, 0.6); color: #fff;
+    font: 700 12px/1 var(--ui); letter-spacing: 1px;
+}
+.dev button.on { background: rgba(34, 214, 90, 0.25); border-color: #22d65a; }
+
+/* ===================== VBOX Performance Box Touch ===================== */
+.vbox-btn {
+    position: fixed; top: 8px; right: 8px; z-index: 20;
+    display: flex; align-items: center; gap: 6px;
+    padding: 5px 11px; border-radius: 999px; cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    background: rgba(10, 11, 13, 0.62); color: #fff;
+    font: 700 11px/1 var(--ui); letter-spacing: 1.5px;
+    opacity: 0.8; transition: opacity 0.2s, border-color 0.2s, transform 0.1s;
+}
+.vbox-btn i { width: 8px; height: 8px; border-radius: 50%; background: #555; transition: background 0.2s, box-shadow 0.2s; }
+.vbox-btn span { color: #36c3ff; }
+.vbox-btn:hover { opacity: 1; border-color: #36c3ff; }
+.vbox-btn:active { transform: scale(0.95); }
+.vbox-btn.on i { background: #22d65a; box-shadow: 0 0 6px #22d65a; }
+body.no-btn .vbox-btn { display: none; }
+
+.vbox {
+    position: fixed; top: 44px; right: 8px; z-index: 19; width: 340px;
+    padding: 10px 10px 12px; border-radius: 16px;
+    background: linear-gradient(160deg, #3a3d43 0%, #17181b 38%, #0c0c0e 100%);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    color: #fff; font-family: var(--ui);
+    opacity: 0; transform: translateY(-12px) scale(0.95); transform-origin: top right;
+    pointer-events: none; transition: opacity 0.25s ease, transform 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+.vbox.open { opacity: 1; transform: none; pointer-events: auto; }
+.vbox .vb-top { display: flex; align-items: baseline; gap: 8px; padding: 0 4px 8px; }
+.vbox .vb-logo { font: 900 17px/1 var(--digital); letter-spacing: 2px; }
+.vbox .vb-sub { font-size: 9px; letter-spacing: 1.6px; color: #9aa0a8; flex: 1; }
+.vbox .vb-gps { font-size: 10px; letter-spacing: 1px; color: #9aa0a8; display: flex; align-items: center; gap: 4px; }
+.vbox .vb-gps i { width: 7px; height: 7px; border-radius: 50%; background: #22d65a; box-shadow: 0 0 5px #22d65a; animation: vbgps 1.2s steps(2) infinite; }
+@keyframes vbgps { 50% { opacity: 0.25; } }
+.vbox .vb-screen { background: #050608; border-radius: 9px; padding: 8px 10px 6px; border: 2px solid #26282d; }
+.vbox .vb-status { font-size: 11px; letter-spacing: 2px; font-weight: 700; color: #ffb800; text-align: center; }
+.vbox .vb-status.ready { color: #22d65a; }
+.vbox .vb-status.run { color: #36c3ff; }
+.vbox .vb-main { display: flex; justify-content: space-between; align-items: flex-end; padding: 4px 0 2px; }
+.vbox .vb-speed, .vbox .vb-time { display: flex; align-items: baseline; gap: 4px; }
+.vbox .vb-speed { cursor: pointer; }
+.vbox .vb-main b { font: 800 34px/1 var(--digital); }
+.vbox .vb-time b { color: #36c3ff; }
+.vbox .vb-main em { font: 700 11px/1 var(--ui); font-style: normal; color: #9aa0a8; letter-spacing: 1px; }
+.vbox .vb-g { font-size: 11px; color: #9aa0a8; letter-spacing: 1px; text-align: right; }
+.vbox .vb-g b { color: #fff; font-family: var(--digital); font-weight: 600; }
+.vbox .vb-rows { margin-top: 4px; border-top: 1px solid #23252a; }
+.vbox .vb-row { display: grid; grid-template-columns: 1fr 70px 78px; align-items: baseline; padding: 4px 0; border-bottom: 1px solid #16181b; }
+.vbox .vb-row .n { font-size: 15px; font-weight: 700; letter-spacing: 1px; }
+.vbox .vb-row .n small { margin-left: 4px; font-size: 10px; color: #9aa0a8; }
+.vbox .vb-row .t { font: 600 15px/1 var(--digital); text-align: right; color: #4a4e56; }
+.vbox .vb-row .x { font-size: 10px; text-align: right; color: #9aa0a8; }
+.vbox .vb-row.live .t { color: #ffb800; }
+.vbox .vb-row.done .t { color: #22d65a; }
+.vbox .vb-btns { display: flex; gap: 8px; padding-top: 9px; }
+.vbox .vb-btns button {
+    flex: 1; padding: 7px 0; border-radius: 7px; cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, 0.2); background: #1d1f23; color: #fff;
+    font: 700 12px/1 var(--ui); letter-spacing: 2px;
+}
+.vbox .vb-btns button:hover { border-color: #36c3ff; }
+.vbox .vb-btns button:active { transform: scale(0.97); }
+
+/* ===================== MUSIK (now playing, sinkron lewat room) ===================== */
+.music {
+    position: absolute; left: 50%; bottom: 100%; transform: translate(-50%, 10px);
+    display: flex; align-items: center; gap: 22px;
+    width: 640px; max-width: 100%; margin-bottom: 14px; padding: 12px 26px;
+    border-radius: 999px; border: 2px solid rgba(255, 255, 255, 0.2);
+    background: linear-gradient(180deg, rgba(28, 29, 34, 0.9), rgba(4, 4, 5, 0.92));
+    box-shadow: 0 6px 22px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+}
+.music.show { opacity: var(--lum2, 1); transform: translate(-50%, 0); }
+.music .mu-eq { display: flex; align-items: flex-end; gap: 5px; height: 34px; flex: none; }
+.music .mu-eq i { width: 7px; height: 8px; background: #d4161a; border-radius: 2px; box-shadow: 0 0 8px rgba(255, 42, 31, 0.6); }
+.music.on .mu-eq i { animation: mu-bar 0.9s ease-in-out infinite; }
+.music.on .mu-eq i:nth-child(2) { animation-delay: -0.3s; animation-duration: 0.7s; }
+.music.on .mu-eq i:nth-child(3) { animation-delay: -0.6s; animation-duration: 1.1s; }
+.music.on .mu-eq i:nth-child(4) { animation-delay: -0.15s; animation-duration: 0.8s; }
+@keyframes mu-bar { 0%, 100% { height: 8px; } 50% { height: 34px; } }
+.music .mu-txt { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; }
+.music .mu-title {
+    display: inline-block; font: 700 30px/1.1 var(--ui); letter-spacing: 1.5px; color: var(--ink);
+    padding-left: 100%; animation: mu-marq 14s linear infinite;
+}
+@keyframes mu-marq { to { transform: translateX(-100%); } }
+.music .mu-time { flex: none; font: 600 24px/1 var(--digital); color: #36c3ff; letter-spacing: 1px; }
+
+/* ===================== TEMA (warna diatur theme.js lewat variabel CSS) ===================== */
+.dial .edge { stroke: var(--edge, #c8181c); }
+.dial .tk.red { stroke: var(--tkred, #ff6a6a); }
+.music .mu-eq i { background: var(--zone, #d4161a); }
+.music .mu-time { color: var(--accent, #36c3ff); }
