@@ -251,43 +251,88 @@ body.no-btn .vbox-btn { display: none; }
 .vbox .vb-btns button:hover { border-color: #36c3ff; }
 .vbox .vb-btns button:active { transform: scale(0.97); }
 
-/* ===================== MUSIK (now playing, sinkron lewat room) ===================== */
+/* ===================== MUSIK (now playing, sinkron lewat room) =====================
+   Bahasa visual sama dengan dial: bingkai chrome, muka hitam + kilau kaca, slab miring seperti logo,
+   label kecil kapital, garis tipis seperti tepi dial. Lebar = diameter cincin tacho (~405px). */
 .music {
+    --mu-acc: var(--ndl-on);                    /* ikut warna tema (theme.js mengubah --ndl-on) */
     position: absolute; left: 50%; bottom: 100%; transform: translate(-50%, 10px);
-    display: flex; align-items: center; gap: 22px;
-    width: 640px; max-width: 100%; margin-bottom: 14px; padding: 12px 26px;
-    border-radius: 999px; border: 2px solid rgba(255, 255, 255, 0.2);
-    background: linear-gradient(180deg, rgba(28, 29, 34, 0.9), rgba(4, 4, 5, 0.92));
-    box-shadow: 0 6px 22px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+    display: flex; align-items: center; gap: 14px;
+    width: 404px; height: 66px; margin-bottom: 12px; padding: 0 30px 0 18px;
+    border-radius: 999px; border: 3px solid transparent;
+    background:
+        radial-gradient(ellipse at 50% 50%, var(--face-a) 0%, var(--face-b) 100%) padding-box,
+        linear-gradient(180deg, #d4d7dd 0%, #858890 30%, #2b2c31 52%, #7a7d85 78%, #c4c7cd 100%) border-box;   /* chrome senada cincin dial, versi bar */
+    box-shadow: 0 0 0 2px #050506, 0 8px 22px rgba(0, 0, 0, 0.6);
     opacity: 0; pointer-events: none;
-    transition: opacity 0.4s ease, transform 0.4s ease;
+    transition: opacity 0.5s ease, transform 0.4s ease;
+}
+.music::before {                                 /* kilau kaca (sama dgn glassG di dial) */
+    content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.11) 0%, rgba(255, 255, 255, 0) 45%);
 }
 .music.show { opacity: var(--lum2, 1); transform: translate(-50%, 0); }
-.music .mu-eq { display: flex; align-items: flex-end; gap: 5px; height: 34px; flex: none; }
-.music .mu-eq i { width: 7px; height: 8px; background: #d4161a; border-radius: 2px; box-shadow: 0 0 8px rgba(255, 42, 31, 0.6); }
+.cluster:not(.engine-on) .music.show { opacity: 0.22; }      /* mesin mati = layar redup */
+
+/* Slab miring (bentuk blok logo di dial) berisi equalizer */
+.music .mu-slab { flex: none; filter: drop-shadow(0 0 7px var(--mu-acc)); opacity: 0.95; }
+.music .mu-eq {
+    display: flex; align-items: flex-end; justify-content: center; gap: 4px;
+    width: 56px; height: 40px; padding: 7px 8px 7px 4px;
+    background: linear-gradient(180deg, var(--mu-acc), var(--zone));
+    clip-path: polygon(18% 0, 100% 0, 82% 100%, 0 100%);
+}
+.music .mu-eq i { width: 4px; height: 8px; background: #050506; }
+.music .mu-eq i:nth-child(1) { height: 10px; }
+.music .mu-eq i:nth-child(2) { height: 18px; }
+.music .mu-eq i:nth-child(3) { height: 13px; }
+.music .mu-eq i:nth-child(4) { height: 20px; }
+.music .mu-eq i:nth-child(5) { height: 9px; }
 .music.on .mu-eq i { animation: mu-bar 0.9s ease-in-out infinite; }
 .music.on .mu-eq i:nth-child(2) { animation-delay: -0.3s; animation-duration: 0.7s; }
 .music.on .mu-eq i:nth-child(3) { animation-delay: -0.6s; animation-duration: 1.1s; }
 .music.on .mu-eq i:nth-child(4) { animation-delay: -0.15s; animation-duration: 0.8s; }
-@keyframes mu-bar { 0%, 100% { height: 8px; } 50% { height: 34px; } }
-.music .mu-txt { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; }
-.music .mu-title {
-    display: inline-block; font: 700 30px/1.1 var(--ui); letter-spacing: 1.5px; color: var(--ink);
-    padding-left: 100%; animation: mu-marq 14s linear infinite;
+.music.on .mu-eq i:nth-child(5) { animation-delay: -0.45s; animation-duration: 1s; }
+@keyframes mu-bar { 0%, 100% { height: 5px; } 50% { height: 26px; } }
+
+/* Teks: label kecil + judul italic, gaya angka & label dial */
+.music .mu-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; padding-bottom: 4px; }
+.music .mu-lbl { font: 700 10.5px/1 var(--ui); letter-spacing: 2.6px; color: rgba(244, 246, 250, 0.55); text-transform: uppercase; padding-left: 10px; }
+.music .mu-lbl::before { content: 'NOW PLAYING'; }
+.music:not(.on) .mu-lbl::before { content: 'PAUSED'; }
+.music .mu-clip {
+    overflow: hidden; white-space: nowrap;
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 10px, #000 calc(100% - 10px), transparent 100%);
+            mask-image: linear-gradient(90deg, transparent 0, #000 10px, #000 calc(100% - 10px), transparent 100%);
 }
-@keyframes mu-marq { to { transform: translateX(-100%); } }
-.music .mu-time { flex: none; font: 600 24px/1 var(--digital); color: #36c3ff; letter-spacing: 1px; }
+.music .mu-title {
+    display: inline-block; padding: 0 10px; font: 700 italic 24px/1.12 var(--ui); letter-spacing: 0.6px; color: var(--ink);
+    text-shadow: 0 0 7px rgba(255, 255, 255, 0.22);
+}
+.music .mu-title.scroll { animation: mu-pan var(--dur, 8s) ease-in-out infinite alternate; }
+@keyframes mu-pan { 0%, 14% { transform: translateX(0); } 86%, 100% { transform: translateX(var(--shift, 0px)); } }
+
+.music .mu-time {
+    flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 3px; padding-bottom: 4px;
+    font: 700 25px/1 var(--ui); letter-spacing: 1px; color: var(--ink);
+    text-shadow: 0 0 7px rgba(255, 255, 255, 0.22); font-variant-numeric: tabular-nums;
+}
+.music .mu-time small { font: 700 11px/1 var(--ui); letter-spacing: 1.5px; color: rgba(244, 246, 250, 0.5); text-shadow: none; }
+
+/* Garis progres tipis di dasar (seperti garis tepi dial) */
+.music .mu-prog { position: absolute; left: 96px; right: 36px; bottom: 7px; height: 2px; background: rgba(255, 255, 255, 0.13); }
+.music .mu-prog b {
+    display: block; height: 100%; background: var(--mu-acc); box-shadow: 0 0 6px var(--mu-acc);
+    transform-origin: left center; transform: scaleX(var(--prog, 0)); transition: transform 0.5s linear;
+}
 
 /* ===================== TEMA (warna diatur theme.js lewat variabel CSS) ===================== */
 .dial .edge { stroke: var(--edge, #c8181c); }
 .dial .tk.red { stroke: var(--tkred, #ff6a6a); }
-.music .mu-eq i { background: var(--zone, #d4161a); }
-.music .mu-time { color: var(--accent, #36c3ff); }
 
 /* ===================== MESIN MATI = LAYAR MATI (hitam total) ===================== */
 .dial .chrome-g { opacity: 0; transition: opacity 1.2s ease; }
 .cluster.engine-on .dial .chrome-g { opacity: 1; transition: opacity 0.5s ease; }
-.music { max-width: none; }
 .dial .big.low, .dial .rng.low { fill: var(--amber); }
 .dial .big.crit, .dial .rng.crit { fill: var(--warn); }
 .dial .lbl .rng { font-style: normal; }

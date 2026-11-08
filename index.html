@@ -24,13 +24,18 @@
   </div>
 
   <div class="hud-wrap">
-    <!-- Now playing (musik sinkron): diisi oleh music.js, muncul hanya saat ada lagu di room -->
-    <div class="music" id="music">
-      <div class="mu-eq"><i></i><i></i><i></i><i></i></div>
-      <div class="mu-txt"><span class="mu-title" id="music-title">-</span></div>
-      <span class="mu-time" id="music-time">0:00</span>
-    </div>
     <div class="cluster" id="hud">
+      <!-- Now playing (musik sinkron): diisi oleh music.js, muncul hanya saat ada lagu di room.
+           Ada di dalam .cluster supaya ikut dimmer & mesin ON/OFF seperti dial. -->
+      <div class="music" id="music">
+        <div class="mu-slab"><div class="mu-eq"><i></i><i></i><i></i><i></i><i></i></div></div>
+        <div class="mu-txt">
+          <span class="mu-lbl"></span>
+          <div class="mu-clip"><span class="mu-title" id="music-title">-</span></div>
+        </div>
+        <span class="mu-time" id="music-time">0:00</span>
+        <span class="mu-prog"><b></b></span>
+      </div>
       <!-- Semua gauge, tick, angka, jarum & ikon digambar oleh script.js -->
       <svg id="dial" class="dial" viewBox="537 105 700 700" xmlns="http://www.w3.org/2000/svg"></svg>
 

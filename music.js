@@ -100,7 +100,7 @@
 
     function setCls(title) {
         box.classList.add('show');
-        if (elTitle.textContent !== title) elTitle.textContent = title;
+        if (elTitle.textContent !== title) { elTitle.textContent = title; lastOver = -1; }
     }
 
     // Koreksi drift tiap 5 detik
@@ -110,11 +110,26 @@
         if (Math.abs(audio.currentTime - t.pos) > 0.8) { try { audio.currentTime = t.pos; } catch (e) {} }
     }, 5000);
 
-    // Waktu tampil
+    // Waktu tampil + garis progres + judul berjalan (hanya kalau judul kepanjangan)
+    let lastOver = -1;
+    function fitTitle() {
+        const over = Math.ceil(elTitle.offsetWidth - elTitle.parentElement.clientWidth);
+        if (over === lastOver) return;
+        lastOver = over;
+        if (over > 2) {
+            elTitle.style.setProperty('--shift', -over + 'px');
+            elTitle.style.setProperty('--dur', (over / 30 + 4).toFixed(1) + 's');
+            elTitle.classList.add('scroll');
+        } else {
+            elTitle.classList.remove('scroll');
+        }
+    }
     setInterval(() => {
         if (!box.classList.contains('show')) return;
-        const d = isFinite(audio.duration) ? ' / ' + fmt(audio.duration) : '';
-        elTime.textContent = fmt(audio.currentTime) + d;
+        const dur = audio.duration, ok = isFinite(dur) && dur > 0;
+        elTime.innerHTML = fmt(audio.currentTime) + (ok ? '<small>/ ' + fmt(dur) + '</small>' : '');
+        box.style.setProperty('--prog', ok ? Math.min(1, audio.currentTime / dur).toFixed(4) : '0');
+        fitTitle();
     }, 500);
 
     // ---------- Lagu habis -> lanjut ke berikutnya (conditional PUT dengan ETag, hanya satu klien yang menang) ----------
